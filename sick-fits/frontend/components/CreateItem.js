@@ -80,7 +80,7 @@ class CreateItem extends Component {
             <Error error={error} />
             <fieldset disabled={loading} aria-busy={loading}>
               <label htmlFor="file">
-                Title
+                Image
                 <input
                   type="file"
                   id="file"
@@ -144,3 +144,4 @@ class CreateItem extends Component {
 }
 
 export default CreateItem;
+export { CREATE_ITEM_MUTATION };
