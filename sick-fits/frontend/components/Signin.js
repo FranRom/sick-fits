@@ -7,7 +7,7 @@ import { CURRENT_USER_QUERY } from "./User";
 
 const SIGNIN_MUTATION = gql`
   mutation SIGNIN_MUTATION($email: String!, $password: String!) {
-    signup(email: $email, password: $password) {
+    signin(email: $email, password: $password) {
       id
       email
       password
