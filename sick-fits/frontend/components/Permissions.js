@@ -1,4 +1,4 @@
-import { Query } from "react-apollo";
+import { Query, Mutation } from "react-apollo";
 import Error from "./ErrorMessage";
 import gql from "graphql-tag";
 import Table from "./styles/Table";
@@ -13,6 +13,17 @@ const possiblePermissions = [
   "ITEMDELETE",
   "PERMISSIONUPDATE"
 ];
+
+const UPDATE_PERMISSIONS_MUTATION = gql`
+  mutation updatePermissions($permissions: [Permission], $userId: ID!) {
+    updatePermissions(permissions: $permissions, userId: $userId) {
+      id
+      permissions
+      name
+      email
+    }
+  }
+`;
 
 const ALL_USERS_QUERY = gql`
   query {
@@ -40,7 +51,7 @@ const Permissions = props => (
                 {possiblePermissions.map(permission => (
                   <th key={permission}>{permission}</th>
                 ))}
-                <th />
+                <th>👇🏻</th>
               </tr>
             </thead>
             <tbody>
@@ -50,7 +61,6 @@ const Permissions = props => (
             </tbody>
           </Table>
         </div>
-        <p>Hey</p>
       </div>
     )}
   </Query>
@@ -65,18 +75,16 @@ class UserPermissions extends React.Component {
       permissions: PropTypes.array
     }).isRequired
   };
-
-  //this is ok because we are shedding of an initial state
   state = {
     permissions: this.props.user.permissions
   };
-
   handlePermissionChange = e => {
     const checkbox = e.target;
-    // Take acopy of the current permissions
+    // take a copy of the current permissions
     let updatedPermissions = [...this.state.permissions];
-    // Figure out if we need to remove or add this permission
+    // figure out if we need to remove or add this permission
     if (checkbox.checked) {
+      // add it in!
       updatedPermissions.push(checkbox.value);
     } else {
       updatedPermissions = updatedPermissions.filter(
@@ -85,30 +93,54 @@ class UserPermissions extends React.Component {
     }
     this.setState({ permissions: updatedPermissions });
   };
-
   render() {
     const user = this.props.user;
     return (
-      <tr>
-        <td>{user.name}</td>
-        <td>{user.email}</td>
-        {possiblePermissions.map(permission => (
-          <td key={permission}>
-            <label htmlFor={`${user.id}-permission-${permission}`}>
-              <input
-                id={`${user.id}-permission-${permission}`}
-                type="checkbox"
-                checked={this.state.permissions.includes(permission)}
-                value={permission}
-                onChange={this.handlePermissionChange}
-              />
-            </label>
-          </td>
-        ))}
-        <td>
-          <SickButton>Update</SickButton>
-        </td>
-      </tr>
+      <Mutation
+        mutation={UPDATE_PERMISSIONS_MUTATION}
+        variables={{
+          permissions: this.state.permissions,
+          userId: this.props.user.id
+        }}
+      >
+        {(updatePermissions, { loading, error }) => (
+          <>
+            {error && (
+              <tr>
+                <td colspan="8">
+                  <Error error={error} />
+                </td>
+              </tr>
+            )}
+            <tr>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              {possiblePermissions.map(permission => (
+                <td key={permission}>
+                  <label htmlFor={`${user.id}-permission-${permission}`}>
+                    <input
+                      id={`${user.id}-permission-${permission}`}
+                      type="checkbox"
+                      checked={this.state.permissions.includes(permission)}
+                      value={permission}
+                      onChange={this.handlePermissionChange}
+                    />
+                  </label>
+                </td>
+              ))}
+              <td>
+                <SickButton
+                  type="button"
+                  disabled={loading}
+                  onClick={updatePermissions}
+                >
+                  Updat{loading ? "ing" : "e"}
+                </SickButton>
+              </td>
+            </tr>
+          </>
+        )}
+      </Mutation>
     );
   }
 }
