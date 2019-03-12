@@ -29,14 +29,15 @@ function totalItems(cart) {
 }
 
 class TakeMyMoney extends Component {
-  onToken = (res, createOrder) => {
-    createOrder({
+  onToken = async (res, createOrder) => {
+    const order = await createOrder({
       variables: {
         token: res.id
       }
     }).catch(err => {
       alert(err.message);
     });
+    console.log("oder: ", order);
   };
 
   render() {
@@ -52,7 +53,9 @@ class TakeMyMoney extends Component {
                 amount={calcToPrice(me.cart)}
                 name="Sick Fits"
                 description={`Order of ${totalItems(me.cart)} items!`}
-                image={me.cart[0].item && me.cart[0].item.image}
+                image={
+                  me.cart.length && me.cart[0].item && me.cart[0].item.image
+                }
                 stripeKey="pk_test_Memf5SksKWNlP8MkaloxuvoX"
                 currency="USD"
                 email="hello@sickfits.com"
